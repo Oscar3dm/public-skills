@@ -2,7 +2,8 @@
    bottom-left of the window opens a floating card on click and closes it on
    a second click. The card holds themes, then each group's choices (chips)
    and ranges (slider with readout). A faint x left of each theme, section
-   header and control shows on hover and deletes that item.
+   header and control shows on hover and deletes that item; a small i after
+   each label floats a one-sentence explanation beside the card.
 
    Retheme it by overriding the --rs-t-* tokens, ideally from the host
    project's own tokens. */
@@ -96,3 +97,18 @@
 .rs-range::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: var(--rs-t-paper); border: 2px solid var(--rs-t-accent); }
 .rs-range:focus-visible { outline: none; }
 .rs-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px color-mix(in srgb, var(--rs-t-accent) 30%, transparent); }
+
+/* Info icons and their floating tip. */
+.rs-info {
+  display: inline-grid; place-items: center; vertical-align: 1px;
+  width: 13px; height: 13px; margin-left: 6px; border-radius: 50%; box-sizing: border-box;
+  font: 600 9px/1 var(--rs-t-font); color: var(--rs-t-mute); border: 1px solid var(--rs-t-edge);
+  cursor: help;
+}
+.rs-info:hover, .rs-info:focus-visible { color: var(--rs-t-accent); border-color: var(--rs-t-accent); outline: none; }
+.rs-tip {
+  position: fixed; z-index: 1300; max-width: 240px; padding: 8px 10px; box-sizing: border-box;
+  font: 12px/1.45 var(--rs-t-font); color: var(--rs-t-paper); background: var(--rs-t-ink);
+  border-radius: 8px; box-shadow: var(--rs-t-shadow); pointer-events: none;
+}
+.rs-tip[hidden] { display: none; }

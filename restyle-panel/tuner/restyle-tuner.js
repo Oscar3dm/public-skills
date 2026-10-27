@@ -15,8 +15,9 @@
 //   const SPEC = {
 //     panel: 'source-tiles',
 //     groups: [{ title: 'Layout', options: [
-//       { id: 'layout', type: 'choice', label: 'Arrange', choices: [{ value: 'grid', label: 'Grid' }] },
-//       { id: 'gap', type: 'range', label: 'Gap', min: 4, max: 40, step: 2, unit: 'px' },
+//       { id: 'layout', type: 'choice', label: 'Arrange', help: 'How the tiles are laid out.',
+//         choices: [{ value: 'grid', label: 'Grid' }] },
+//       { id: 'gap', type: 'range', label: 'Gap', help: 'Space between the tiles.', min: 4, max: 40, step: 2, unit: 'px' },
 //     ] }],
 //     themes: [{ name: 'Gallery', values: { layout: 'grid', gap: 24 } }],
 //     defaults: { layout: 'grid', gap: 16 },
@@ -29,6 +30,10 @@
 //   Load        a saved preset back in, each value checked against the spec
 //   Save        downloads a preset  { kind: 'restyle-preset', panel, basedOn, values }
 //   Save panel  downloads the trimmed panel  { kind: 'restyle-panel', panel, removed, spec }
+//
+// Every option carries `help`, one plain sentence on what it changes (a group
+// may carry one too). The tuner puts a small i after the label; hovering or
+// focusing it floats that sentence beside the card.
 //
 // A small x to the left of each theme, section header and control (shown on
 // hover) deletes that item from the tuner. Deleted options stop being written
@@ -45,6 +50,7 @@ const BRUSH = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
 const CROSS = '<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
 
 const allOptions = (spec) => spec.groups.flatMap((g) => g.options);
+const info = (text) => (text ? `<span class="rs-info" tabindex="0" role="img" aria-label="${esc(text)}" data-help="${esc(text)}">i</span>` : '');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function restyleEnabled() {
@@ -126,7 +132,11 @@ export function createRestyleTuner({ target, spec, onChange = () => {} }) {
   const card = document.createElement('div');
   card.className = 'rs-card';
   card.hidden = true;
-  document.body.append(btn, card);
+  const tip = document.createElement('div');
+  tip.className = 'rs-tip';
+  tip.setAttribute('role', 'tooltip');
+  tip.hidden = true;
+  document.body.append(btn, card, tip);
 
   const commit = () => {
     const cur = live();
@@ -167,15 +177,15 @@ export function createRestyleTuner({ target, spec, onChange = () => {} }) {
     for (const g of cur.groups) {
       const sec = document.createElement('div');
       sec.className = 'rs-group';
-      sec.innerHTML = `<div class="rs-h rs-item">${del('group', g.title, g.title)}<span>${esc(g.title)}</span></div>`;
+      sec.innerHTML = `<div class="rs-h rs-item">${del('group', g.title, g.title)}<span>${esc(g.title)}${info(g.help)}</span></div>`;
       for (const o of g.options) {
         const row = document.createElement('div');
         row.className = 'rs-row rs-item';
         if (o.type === 'choice') {
-          row.innerHTML = `${del('option', o.id, o.label)}<div class="rs-ctl"><span class="rs-label">${esc(o.label)}</span><div class="rs-chips">${o.choices.map((c) => (
+          row.innerHTML = `${del('option', o.id, o.label)}<div class="rs-ctl"><span class="rs-label"><span>${esc(o.label)}${info(o.help)}</span></span><div class="rs-chips">${o.choices.map((c) => (
             `<button type="button" class="rs-chip${values[o.id] === c.value ? ' active' : ''}" data-opt="${esc(o.id)}" data-v="${esc(c.value)}">${esc(c.label)}</button>`)).join('')}</div></div>`;
         } else {
-          row.innerHTML = `${del('option', o.id, o.label)}<div class="rs-ctl"><span class="rs-label">${esc(o.label)}<output class="rs-out"></output></span>
+          row.innerHTML = `${del('option', o.id, o.label)}<div class="rs-ctl"><span class="rs-label"><span>${esc(o.label)}${info(o.help)}</span><output class="rs-out"></output></span>
             <input type="range" class="rs-range" min="${o.min}" max="${o.max}" step="${o.step}" value="${values[o.id]}" aria-label="${esc(o.label)}"></div>`;
           const input = row.querySelector('input');
           const out = row.querySelector('output');
@@ -202,6 +212,26 @@ export function createRestyleTuner({ target, spec, onChange = () => {} }) {
       b.classList.toggle('active', !!t && sameAs(t));
     });
   }
+
+  // The i tips float beside the card, level with their icon, so they never
+  // cover the controls; they show on hover or keyboard focus.
+  const showTip = (el) => {
+    tip.textContent = el.dataset.help;
+    tip.hidden = false;
+    const c = card.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const w = tip.offsetWidth;
+    const h = tip.offsetHeight;
+    const left = c.right + 10 + w <= window.innerWidth - 8 ? c.right + 10 : Math.max(8, c.left - 10 - w);
+    tip.style.left = left + 'px';
+    tip.style.top = Math.max(8, Math.min(r.top + r.height / 2 - h / 2, window.innerHeight - h - 8)) + 'px';
+  };
+  const hideTip = () => { tip.hidden = true; };
+  card.addEventListener('mouseover', (e) => { const el = e.target.closest('.rs-info'); if (el) showTip(el); });
+  card.addEventListener('mouseout', (e) => { if (e.target.closest('.rs-info')) hideTip(); });
+  card.addEventListener('focusin', (e) => { const el = e.target.closest('.rs-info'); if (el) showTip(el); });
+  card.addEventListener('focusout', (e) => { if (e.target.closest('.rs-info')) hideTip(); });
+  card.addEventListener('scroll', hideTip, true);
 
   card.addEventListener('click', (e) => {
     const gone = e.target.closest('[data-del]');
@@ -273,6 +303,7 @@ export function createRestyleTuner({ target, spec, onChange = () => {} }) {
   // closes the card: no hover, no outside click.
   btn.addEventListener('click', () => {
     const opening = card.hidden;
+    hideTip();
     if (!opening) scroll = card.querySelector('.rs-body').scrollTop;
     card.hidden = !opening;
     if (opening) build();
@@ -285,6 +316,6 @@ export function createRestyleTuner({ target, spec, onChange = () => {} }) {
     values: () => Object.assign({}, values),
     spec: live,
     sync: () => commit(),
-    destroy: () => { btn.remove(); card.remove(); picker.remove(); },
+    destroy: () => { btn.remove(); card.remove(); tip.remove(); picker.remove(); },
   };
 }

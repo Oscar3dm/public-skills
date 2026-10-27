@@ -29,14 +29,14 @@
     panel: 'demo-sources',
     groups: [
       { title: 'Layout', options: [
-        { id: 'layout', type: 'choice', label: 'Arrange', choices: [{ value: 'grid', label: 'Grid' }, { value: 'list', label: 'List' }] },
-        { id: 'gap', type: 'range', label: 'Gap', min: 4, max: 24, step: 2, unit: 'px' },
-        { id: 'pad', type: 'range', label: 'Padding', min: 8, max: 32, step: 2, unit: 'px' },
+        { id: 'layout', type: 'choice', label: 'Arrange', help: 'Tiles in a grid, or one per row.', choices: [{ value: 'grid', label: 'Grid' }, { value: 'list', label: 'List' }] },
+        { id: 'gap', type: 'range', label: 'Gap', help: 'Space between the tiles.', min: 4, max: 24, step: 2, unit: 'px' },
+        { id: 'pad', type: 'range', label: 'Padding', help: 'Space between the panel edge and its content.', min: 8, max: 32, step: 2, unit: 'px' },
       ] },
       { title: 'Surface', options: [
-        { id: 'tone', type: 'choice', label: 'Tone', choices: [{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }] },
-        { id: 'shadow', type: 'choice', label: 'Shadow', choices: [{ value: 'none', label: 'None' }, { value: 'soft', label: 'Soft' }] },
-        { id: 'radius', type: 'range', label: 'Corners', min: 0, max: 20, step: 1, unit: 'px' },
+        { id: 'tone', type: 'choice', label: 'Tone', help: 'A light or a dark panel.', choices: [{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }] },
+        { id: 'shadow', type: 'choice', label: 'Shadow', help: 'Whether the panel lifts off the page.', choices: [{ value: 'none', label: 'None' }, { value: 'soft', label: 'Soft' }] },
+        { id: 'radius', type: 'range', label: 'Corners', help: 'Corner rounding of the panel and its tiles.', min: 0, max: 20, step: 1, unit: 'px' },
       ] },
     ],
     themes: [

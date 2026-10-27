@@ -10,7 +10,7 @@ Instead of guessing one look, ship a better default AND a live tuner, so the use
 ## The loop
 
 1. **Fix the obvious first.** Whatever the user called out (unstyled scrollbar, tags eating vertical space, overflow) gets fixed in the shipped default, not just offered as an option.
-2. **Declare a spec** for the panel: a `RestyleSpec` with grouped options (`choice` = segmented chips, `range` = slider with readout; never number spinners), 3-5 `themes` (named presets that look good), and `defaults`.
+2. **Declare a spec** for the panel: a `RestyleSpec` with grouped options (`choice` = segmented chips, `range` = slider with readout; never number spinners), 3-5 `themes` (named presets that look good), and `defaults`. Every option carries `help`: one plain sentence on what it changes on the page, in the user's words (a group may carry one too).
 3. **Make every variant plain CSS** keyed on `data-rs-<id>` attributes (choices) and `--rs-<id>` custom properties (ranges) on the panel root, each with a sensible base rule for when the attribute or property is absent. The panel always calls `applyRestyle(root, SPEC, SPEC.defaults)`; the tuner is only another writer of the same attributes. No variant may require JS beyond that.
 4. **Mount the tuner** gated to dev / `?restyle` so end users never see it: `restyleEnabled() ? createRestyleTuner({ target: root, spec: SPEC }) : null`, and call `tuner?.sync()` whenever the panel shows, hides or resizes.
 5. **Verify every theme** with screenshots (click the brush button, click each theme, screenshot), fix what looks off.
@@ -26,6 +26,7 @@ Instead of guessing one look, ship a better default AND a live tuner, so the use
   - **Load** opens a file picker for a saved preset or panel JSON, checks it is this panel's (`kind`, `panel`), and applies only values the spec allows (a known option, an offered choice, a range value in bounds), so the user can go back to a saved look or compare two saves. A panel file also restores its deletions.
   - **Save** downloads the current values as a preset.
   - **Save panel** downloads the trimmed panel: the spec as it now stands after deletions, with the current values as its defaults.
+- Each control (and each section header with `help`) has a small i after its label. Hovering or focusing it floats the option's `help` sentence beside the card, level with the icon, so it never covers the controls.
 - Each theme, section header and control has a small x to its left. It is invisible until that item is hovered, faint while hovered, and turns red only when the x itself is hovered. Clicking it deletes that item from the tuner: a deleted control stops being written to the panel root (its CSS falls back to the base rule), a deleted section takes its controls with it, and a deleted theme leaves the list. Deletions persist across reloads until Reset.
 
 ## Reference implementation (reuse it)
@@ -44,5 +45,6 @@ Instead of guessing one look, ship a better default AND a live tuner, so the use
 - Never hover-open the tuner: no `mouseenter`/`mouseover` handlers and no `:hover` rule may show it. Hover may only reveal the delete icons inside the open card.
 - The card's scroll position is persistent. A pick, a theme, a delete or a Load must never scroll it back to the top or visibly reset it, and closing and reopening it returns to the same place. If the card is rebuilt on a change, carry its scroll position across the rebuild.
 - Stored values are checked against the spec on restore, exactly as Load checks them, so a value saved by an older spec is dropped instead of breaking the CSS.
+- Every control gets an i with a `help` sentence. No option ships without one.
 - Every option must render cleanly in every combination with the others; check the extremes of each range.
 - The tuner never ships to production users; the defaults always do.
