@@ -1,0 +1,98 @@
+/* Restyle tuner (dev only; restyle-tuner.js). A round brush button pinned
+   bottom-left of the window opens a floating card on click and closes it on
+   a second click. The card holds themes, then each group's choices (chips)
+   and ranges (slider with readout). A faint x left of each theme, section
+   header and control shows on hover and deletes that item.
+
+   Retheme it by overriding the --rs-t-* tokens, ideally from the host
+   project's own tokens. */
+:root {
+  --rs-t-paper: #ffffff;
+  --rs-t-ink: #1d1f23;
+  --rs-t-mute: #6b7079;
+  --rs-t-edge: #e3e5e8;
+  --rs-t-accent: #2f6fde;
+  --rs-t-danger: #c8412f;
+  --rs-t-radius: 10px;
+  --rs-t-shadow: 0 12px 32px rgba(20, 24, 31, 0.16);
+  --rs-t-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.rs-btn {
+  position: fixed; left: 18px; bottom: 18px; z-index: 1200;
+  width: 40px; height: 40px; border-radius: 50%; padding: 0;
+  display: grid; place-items: center; cursor: pointer;
+  background: var(--rs-t-paper); color: var(--rs-t-ink); border: 1px solid var(--rs-t-edge);
+  box-shadow: var(--rs-t-shadow);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.rs-btn:hover { border-color: var(--rs-t-accent); }
+.rs-btn.is-open { background: var(--rs-t-accent); border-color: var(--rs-t-accent); color: var(--rs-t-paper); }
+.rs-btn:focus-visible { outline: 2px solid var(--rs-t-accent); outline-offset: 2px; }
+
+.rs-card {
+  position: fixed; left: 18px; bottom: 68px; z-index: 1200;
+  width: 360px; max-height: calc(100vh - 140px); box-sizing: border-box;
+  display: flex; flex-direction: column;
+  font: 13px/1.4 var(--rs-t-font); color: var(--rs-t-ink);
+  background: var(--rs-t-paper); border: 1px solid var(--rs-t-edge); border-radius: var(--rs-t-radius);
+  box-shadow: var(--rs-t-shadow);
+}
+.rs-card[hidden] { display: none; }
+.rs-head {
+  flex: none; display: flex; align-items: center; gap: 6px;
+  padding: 10px 14px; border-bottom: 1px solid var(--rs-t-edge);
+}
+.rs-title { flex: 1; font-size: 15px; font-weight: 600; }
+.rs-hbtn {
+  font: inherit; font-size: 12px; padding: 5px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+  background: var(--rs-t-paper); color: var(--rs-t-ink); border: 1px solid var(--rs-t-edge);
+}
+.rs-hbtn:hover { border-color: var(--rs-t-accent); }
+.rs-hbtn.rs-primary { background: var(--rs-t-accent); border-color: var(--rs-t-accent); color: var(--rs-t-paper); }
+
+/* The left padding is the gutter the x icons sit in. */
+.rs-body { overflow: auto; padding: 4px 16px 14px 26px; }
+.rs-group { padding: 10px 0; border-bottom: 1px solid var(--rs-t-edge); display: flex; flex-direction: column; gap: 10px; }
+.rs-group:last-child { border-bottom: 0; }
+.rs-h { font-size: 12px; font-weight: 600; color: var(--rs-t-mute); }
+.rs-row { display: block; }
+.rs-ctl { display: flex; flex-direction: column; gap: 6px; }
+.rs-label { display: flex; justify-content: space-between; }
+.rs-out { color: var(--rs-t-mute); font-variant-numeric: tabular-nums; }
+.rs-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rs-themes .rs-chips { gap: 6px 18px; }
+.rs-chip {
+  font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 999px; cursor: pointer;
+  background: var(--rs-t-paper); color: var(--rs-t-ink); border: 1px solid var(--rs-t-edge);
+}
+.rs-chip:hover { border-color: var(--rs-t-accent); }
+.rs-chip.active { background: var(--rs-t-accent); border-color: var(--rs-t-accent); color: var(--rs-t-paper); }
+
+/* Delete icons: hidden until the item is hovered or focused, then faint
+   until the icon itself is hovered. */
+.rs-item { position: relative; }
+.rs-chips .rs-item { display: inline-flex; }
+.rs-del {
+  position: absolute; left: -17px; top: 1px;
+  width: 14px; height: 14px; padding: 0; border: 0; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer;
+  background: transparent; color: var(--rs-t-mute);
+  opacity: 0; transition: opacity 0.12s, color 0.12s, background 0.12s;
+}
+.rs-chips .rs-del { top: 50%; transform: translateY(-50%); }
+.rs-item:hover > .rs-del, .rs-del:focus-visible { opacity: 0.55; }
+.rs-del:hover, .rs-del:focus-visible { opacity: 1; color: var(--rs-t-danger); background: color-mix(in srgb, var(--rs-t-danger) 12%, transparent); }
+.rs-del:focus-visible { outline: 1px solid var(--rs-t-danger); }
+
+/* Slider: a styled track and thumb, never the browser default. */
+.rs-range { -webkit-appearance: none; appearance: none; width: 100%; height: 18px; margin: 0; background: transparent; cursor: pointer; }
+.rs-range::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--rs-t-edge); }
+.rs-range::-moz-range-track { height: 4px; border-radius: 2px; background: var(--rs-t-edge); }
+.rs-range::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%;
+  background: var(--rs-t-paper); border: 2px solid var(--rs-t-accent);
+}
+.rs-range::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: var(--rs-t-paper); border: 2px solid var(--rs-t-accent); }
+.rs-range:focus-visible { outline: none; }
+.rs-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px color-mix(in srgb, var(--rs-t-accent) 30%, transparent); }

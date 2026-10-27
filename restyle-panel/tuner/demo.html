@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Restyle demo</title>
+<link rel="stylesheet" href="restyle-tuner.css">
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f2f3f5; font: 14px/1.5 system-ui, sans-serif; color: #1d1f23; }
+  .card-panel { width: 320px; background: #fff; border: 1px solid #e3e5e8; border-radius: var(--rs-radius, 10px); padding: var(--rs-pad, 16px); }
+  .card-panel h2 { margin: 0 0 8px; font-size: 16px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--rs-gap, 10px); }
+  .tiles div { aspect-ratio: 1; background: #d9dee6; border-radius: calc(var(--rs-radius, 10px) / 2); }
+  .card-panel[data-rs-layout="list"] .tiles { grid-template-columns: 1fr; }
+  .card-panel[data-rs-layout="list"] .tiles div { aspect-ratio: 5 / 1; }
+  .card-panel[data-rs-tone="dark"] { background: #1f2430; color: #eef0f3; border-color: #1f2430; }
+  .card-panel[data-rs-tone="dark"] .tiles div { background: #3a4252; }
+  .card-panel[data-rs-shadow="soft"] { box-shadow: 0 8px 24px rgba(20, 24, 31, 0.12); }
+</style>
+</head>
+<body>
+<section class="card-panel" id="panel">
+  <h2>Sources</h2>
+  <div class="tiles"><div></div><div></div><div></div><div></div><div></div><div></div></div>
+</section>
+<script type="module">
+  import { applyRestyle, createRestyleTuner, restyleEnabled } from './restyle-tuner.js';
+  const SPEC = {
+    panel: 'demo-sources',
+    groups: [
+      { title: 'Layout', options: [
+        { id: 'layout', type: 'choice', label: 'Arrange', choices: [{ value: 'grid', label: 'Grid' }, { value: 'list', label: 'List' }] },
+        { id: 'gap', type: 'range', label: 'Gap', min: 4, max: 24, step: 2, unit: 'px' },
+        { id: 'pad', type: 'range', label: 'Padding', min: 8, max: 32, step: 2, unit: 'px' },
+      ] },
+      { title: 'Surface', options: [
+        { id: 'tone', type: 'choice', label: 'Tone', choices: [{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }] },
+        { id: 'shadow', type: 'choice', label: 'Shadow', choices: [{ value: 'none', label: 'None' }, { value: 'soft', label: 'Soft' }] },
+        { id: 'radius', type: 'range', label: 'Corners', min: 0, max: 20, step: 1, unit: 'px' },
+      ] },
+    ],
+    themes: [
+      { name: 'Gallery', values: { layout: 'grid', gap: 16, pad: 24, tone: 'light', shadow: 'soft', radius: 14 } },
+      { name: 'Compact', values: { layout: 'list', gap: 4, pad: 10, tone: 'light', shadow: 'none', radius: 4 } },
+      { name: 'Night', values: { layout: 'grid', gap: 10, pad: 18, tone: 'dark', shadow: 'soft', radius: 10 } },
+    ],
+    defaults: { layout: 'grid', gap: 10, pad: 16, tone: 'light', shadow: 'none', radius: 10 },
+  };
+  const root = document.getElementById('panel');
+  applyRestyle(root, SPEC, SPEC.defaults);
+  if (restyleEnabled()) createRestyleTuner({ target: root, spec: SPEC });
+</script>
+</body>
+</html>
