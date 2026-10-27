@@ -74,6 +74,19 @@ function download(name, data) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+// The spec's defaults overlaid with every value of `from` the spec still
+// offers (an unknown option, a choice no longer listed or a range out of
+// bounds is dropped, so a value saved by an older spec cannot break the CSS).
+function validValues(spec, from) {
+  const out = Object.assign({}, spec.defaults);
+  for (const o of allOptions(spec)) {
+    const v = from[o.id];
+    if (o.type === 'choice' ? o.choices.some((c) => c.value === v)
+      : (typeof v === 'number' && v >= o.min && v <= o.max)) out[o.id] = v;
+  }
+  return out;
+}
+
 export function createRestyleTuner({ target, spec, onChange = () => {} }) {
   const key = 'restyle:' + spec.panel;
   const noRemovals = () => ({ options: [], groups: [], themes: [] });
@@ -82,7 +95,7 @@ export function createRestyleTuner({ target, spec, onChange = () => {} }) {
   let removed = noRemovals();
   try {
     const saved = JSON.parse(localStorage.getItem(key) || 'null');
-    if (saved && saved.values) { Object.assign(values, saved.values); basedOn = saved.basedOn || basedOn; }
+    if (saved && saved.values) { values = validValues(spec, saved.values); basedOn = saved.basedOn || basedOn; }
     if (saved && saved.removed) removed = Object.assign(noRemovals(), saved.removed);
   } catch (e) { /* no storage */ }
 
@@ -133,8 +146,13 @@ export function createRestyleTuner({ target, spec, onChange = () => {} }) {
     return Object.keys(t.values).every((k) => t.values[k] === values[k]);
   }
 
+  // The card keeps its scroll position: a pick rebuilds it, and closing and
+  // reopening it, but the list never jumps back to the top.
+  let scroll = 0;
   function build() {
     const cur = live();
+    const prev = card.querySelector('.rs-body');
+    if (prev) scroll = prev.scrollTop;
     card.innerHTML = `<div class="rs-head"><span class="rs-title">Restyle</span>
       <button type="button" class="rs-hbtn" data-act="reset">Reset</button>
       <button type="button" class="rs-hbtn" data-act="load">Load</button>
@@ -174,6 +192,7 @@ export function createRestyleTuner({ target, spec, onChange = () => {} }) {
       }
       body.appendChild(sec);
     }
+    body.scrollTop = scroll;
   }
 
   function markThemes() {
@@ -243,13 +262,7 @@ export function createRestyleTuner({ target, spec, onChange = () => {} }) {
       alert('Not a ' + spec.panel + ' preset.');
       return;
     }
-    const next = Object.assign({}, spec.defaults);
-    for (const o of allOptions(spec)) {
-      const v = incoming[o.id];
-      if (o.type === 'choice' ? o.choices.some((c) => c.value === v)
-        : (typeof v === 'number' && v >= o.min && v <= o.max)) next[o.id] = v;
-    }
-    values = next;
+    values = validValues(spec, incoming);
     basedOn = data.basedOn || file.name;
     if (data.kind === PANEL_KIND && data.removed) removed = Object.assign(noRemovals(), data.removed);
     commit();
@@ -260,8 +273,9 @@ export function createRestyleTuner({ target, spec, onChange = () => {} }) {
   // closes the card: no hover, no outside click.
   btn.addEventListener('click', () => {
     const opening = card.hidden;
-    if (opening) build();
+    if (!opening) scroll = card.querySelector('.rs-body').scrollTop;
     card.hidden = !opening;
+    if (opening) build();
     btn.classList.toggle('is-open', opening);
     btn.setAttribute('aria-expanded', String(opening));
   });

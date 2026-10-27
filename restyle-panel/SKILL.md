@@ -42,5 +42,7 @@ Instead of guessing one look, ship a better default AND a live tuner, so the use
 - Copy: no filler text, 1-2 word labels, one-sentence descriptions only if needed.
 - The tuner opens on a click of its button and closes on a second click of it. It never opens on hover, and it never closes on a click outside it.
 - Never hover-open the tuner: no `mouseenter`/`mouseover` handlers and no `:hover` rule may show it. Hover may only reveal the delete icons inside the open card.
+- The card's scroll position is persistent. A pick, a theme, a delete or a Load must never scroll it back to the top or visibly reset it, and closing and reopening it returns to the same place. If the card is rebuilt on a change, carry its scroll position across the rebuild.
+- Stored values are checked against the spec on restore, exactly as Load checks them, so a value saved by an older spec is dropped instead of breaking the CSS.
 - Every option must render cleanly in every combination with the others; check the extremes of each range.
 - The tuner never ships to production users; the defaults always do.
